@@ -592,7 +592,7 @@
       }
     },
     "upload_options": {
-      "description": "Created by 78181A Genesis",
+      "description": "78181A Genesis",
       "icon": "ufo",
       "after": "run"
     },

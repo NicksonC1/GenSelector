@@ -39,8 +39,20 @@ struct SelectorMenuConfig {
     std::string teamNumber = "0000A";
 };
 
+using SelectorTemperatureGetter = double (*)();
+
 struct SelectorDevicesConfig {
-    std::vector<pros::Motor*> motors{};
+    SelectorTemperatureGetter chassisTemperature = nullptr;
+    pros::Motor* motor1 = nullptr;
+    pros::Motor* motor2 = nullptr;
+
+    constexpr SelectorDevicesConfig() = default;
+    constexpr SelectorDevicesConfig(SelectorTemperatureGetter chassisTemp,
+                                    pros::Motor* firstMotor,
+                                    pros::Motor* secondMotor)
+        : chassisTemperature(chassisTemp),
+          motor1(firstMotor),
+          motor2(secondMotor) {}
 };
 
 using TerminalValueGetter = double (*)();

@@ -1,7 +1,6 @@
 #include "main.h"
-
+#include <algorithm>
 #include <cstdint>
-
 #include "gen/electronics.h"
 #include "gen/setup.hpp"
 #include "gen/selector.hpp"
@@ -71,30 +70,28 @@ gen::Chassis chassis(drivetrain, lateralController, angularController, odomSenso
 double terminalX() { return 0.0; }
 double terminalY() { return 0.0; }
 double terminalTheta() { return 0.0; }
+double hottestDrivetrainTemp() {
+    const double leftHot = std::max(leftDrive[0].get_temperature(), std::max(leftDrive[1].get_temperature(), leftDrive[2].get_temperature()));
+    const double rightHot = std::max(rightDrive[0].get_temperature(), std::max(rightDrive[1].get_temperature(), rightDrive[2].get_temperature()));
+    return std::max(leftHot, rightHot);
+}
 
 pros::adi::DigitalIn autonLimitSwitch('H');
 
 const robot::SelectorConfig autonSelectorConfig{
     .input = {
         .type = robot::SelectorInputType::BrainScreen,
-        .adiDigitalIn = &autonLimitSwitch,
     },
     .menu = {
         .teamNumber = "78181A",
     },
-    .devices = {
-        .motors = {
-            &leftDrive[0], &leftDrive[1], &leftDrive[2], &rightDrive[0],
-            &rightDrive[1], &rightDrive[2], nullptr, nullptr
-        },
-    },
+    .devices = robot::SelectorDevicesConfig(hottestDrivetrainTemp, &leftDrive[0], &rightDrive[0]),
     .terminal = {
-        .fields =
-            {
-                {"X", terminalX, 2},
-                {"Y", terminalY, 2},
-                {"Theta", terminalTheta, 2},
-            },
+        .fields = {
+            {"X", []() -> double { return chassis.getPose().x; }, 2},
+            {"Y", []() -> double { return chassis.getPose().y; }, 2},
+            {"Theta", []() -> double { return chassis.getPose().theta; }, 2},
+        },
         .refreshMs = 50,
     },
     .lcdLine = 4,
@@ -106,6 +103,7 @@ namespace Auton {
 void test() { pros::screen::print(pros::E_TEXT_MEDIUM, 0, "Auton: test"); }
 void left() { pros::screen::print(pros::E_TEXT_MEDIUM, 0, "Auton: left"); }
 void right() { pros::screen::print(pros::E_TEXT_MEDIUM, 0, "Auton: right"); }
+void solo() { pros::screen::print(pros::E_TEXT_MEDIUM, 0, "Auton: solo"); }
 void skills() { pros::screen::print(pros::E_TEXT_MEDIUM, 0, "Auton: skills"); }
 
 }  // namespace Auton
@@ -114,7 +112,7 @@ robot::AutonRoutineList autonRoutines = {
     // {"Default Auton", static_cast<AutonFunc>(Auton::test)},
     {"Left", static_cast<AutonFunc>(Auton::left)},
     {"Right", static_cast<AutonFunc>(Auton::right)},
-    {"Solo AWP", static_cast<AutonFunc>(Auton::right)},
+    {"Solo AWP", static_cast<AutonFunc>(Auton::solo)},
     {"Skills", static_cast<AutonFunc>(Auton::skills)},
 };
 

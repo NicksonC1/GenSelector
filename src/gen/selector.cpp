@@ -431,9 +431,16 @@ bool AutonSelector::newPress() {
 }
 
 double AutonSelector::readGaugeSource(std::size_t gaugeIndex) const {
-    if (gaugeIndex < config_.devices.motors.size() && config_.devices.motors[gaugeIndex] != nullptr) {
-        // 50 is treated as full-scale for these UI bars.
-        return config_.devices.motors[gaugeIndex]->get_temperature();
+    if (gaugeIndex == 0 && config_.devices.chassisTemperature != nullptr) {
+        return config_.devices.chassisTemperature();
+    }
+
+    if (gaugeIndex == 1 && config_.devices.motor1 != nullptr) {
+        return config_.devices.motor1->get_temperature();
+    }
+
+    if (gaugeIndex == 2 && config_.devices.motor2 != nullptr) {
+        return config_.devices.motor2->get_temperature();
     }
 
     if (gaugeIndex < config_.terminal.fields.size() && config_.terminal.fields[gaugeIndex].value != nullptr) {
